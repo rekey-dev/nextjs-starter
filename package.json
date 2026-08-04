@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@rekey.dev/nextjs": "^2.0.0-rc.5",
+    "@rekey.dev/node": "^2.0.0-rc.5",
+    "@rekey.dev/react": "^2.0.0-rc.5",
     "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -22,5 +25,6 @@
     "eslint-config-next": "16.3.0",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "description": "Next.js starter with Rekey auth and billing wired up."
 }

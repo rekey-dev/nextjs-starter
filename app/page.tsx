@@ -1,69 +1,96 @@
-import Image from "next/image";
+import Link from 'next/link';
+import { SignedIn, SignedOut } from '@rekey.dev/react';
+
+/**
+ * The map below is the actual point of this starter: every piece of the
+ * integration is one short file you can open, read and delete.
+ */
+const map = [
+  {
+    file: 'lib/rekey.ts',
+    what: 'The server client. Holds the secret key, never imported from the browser.',
+  },
+  {
+    file: 'app/actions/auth.ts',
+    what: 'Sign up, sign in, sign out. Three functions; they set the cookie themselves.',
+  },
+  {
+    file: 'app/actions/billing.ts',
+    what: 'Turns a plan click into a hosted checkout URL and redirects there.',
+  },
+  {
+    file: 'app/actions/credits.ts',
+    what: 'A metered feature: check the balance, do the work, then deduct.',
+  },
+  {
+    file: 'app/dashboard/page.tsx',
+    what: 'A page that guards itself and reads entitlements on the server.',
+  },
+  {
+    file: 'proxy.ts',
+    what: 'Keeps the session fresh. Deliberately does not protect routes.',
+  },
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="py-8">
+      <section className="max-w-2xl">
+        <p className="text-xs font-medium uppercase tracking-widest text-neutral-500">
+          Rekey starter
+        </p>
+        <h1 className="mt-3 text-3xl font-medium tracking-tight sm:text-4xl">
+          Next.js with auth and billing already wired up.
+        </h1>
+        <p className="mt-4 text-neutral-600 dark:text-neutral-400">
+          Sign-up, sign-in, sessions, plans, checkout, entitlements and credits.
+          Point it at your own Rekey Application, keep the parts you want and
+          delete the rest. Nothing here is hidden behind a helper.
+        </p>
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <SignedOut>
+            <Link
+              href="/sign-up"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white transition hover:bg-neutral-700 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-200"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Create an account
+            </Link>
+          </SignedOut>
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="rounded-md bg-neutral-900 px-4 py-2 text-sm text-white transition hover:bg-neutral-700 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-200"
             >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+              Go to dashboard
+            </Link>
+          </SignedIn>
+          <Link
+            href="/pricing"
+            className="rounded-md border border-neutral-300 px-4 py-2 text-sm transition hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-900"
           >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            See pricing
+          </Link>
         </div>
-      </main>
+      </section>
+
+      <section className="mt-16">
+        <h2 className="text-sm font-medium uppercase tracking-wider text-neutral-500">
+          Where everything lives
+        </h2>
+        <dl className="mt-4 grid gap-px overflow-hidden rounded-xl border border-neutral-200 bg-neutral-200 sm:grid-cols-2 dark:border-neutral-800 dark:bg-neutral-800">
+          {map.map((row) => (
+            <div key={row.file} className="bg-neutral-50 p-5 dark:bg-neutral-950">
+              <dt className="font-mono text-xs text-neutral-900 dark:text-neutral-100">
+                {row.file}
+              </dt>
+              <dd className="mt-1.5 text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+                {row.what}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </section>
     </div>
   );
 }
