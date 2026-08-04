@@ -18,8 +18,8 @@ export default async function DashboardPage() {
   // Entitlements are resolved server-side. Never gate anything that matters on
   // a client-side check: the browser can lie, your server cannot be made to.
   const [subscription, entitlements] = await Promise.all([
-    rekey.billing.getSubscription(session.accessToken).catch(() => null),
-    rekey.billing.getEntitlements(session.accessToken).catch(() => null),
+    rekey().billing.getSubscription(session.accessToken).catch(() => null),
+    rekey().billing.getEntitlements(session.accessToken).catch(() => null),
   ]);
 
   const endingEarly = subscription ? cancelsAtPeriodEnd(subscription) : false;

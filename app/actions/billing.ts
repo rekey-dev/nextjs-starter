@@ -23,7 +23,7 @@ export async function checkoutAction(formData: FormData) {
     redirect(`/sign-in?next=${encodeURIComponent(`/pricing?plan=${planSlug}`)}`);
   }
 
-  const { url } = await rekey.billing.createCheckout(session.accessToken, {
+  const { url } = await rekey().billing.createCheckout(session.accessToken, {
     planSlug,
     successUrl: `${appUrl}/dashboard?checkout=done`,
     cancelUrl: `${appUrl}/pricing?checkout=canceled`,

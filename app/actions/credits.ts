@@ -15,12 +15,12 @@ export async function runMeteredThing(idempotencyKey: string) {
   const session = await auth();
   if (!session) return { ok: false as const, reason: 'signed-out' as const };
 
-  const { creditBalance } = await rekey.billing.getEntitlements(session.accessToken);
+  const { creditBalance } = await rekey().billing.getEntitlements(session.accessToken);
   if (creditBalance < 1) return { ok: false as const, reason: 'no-credits' as const };
 
   // ... your actual work goes here ...
 
-  await rekey.credits.consume({
+  await rekey().credits.consume({
     endUserId: session.user.id,
     amount: 1,
     idempotencyKey,

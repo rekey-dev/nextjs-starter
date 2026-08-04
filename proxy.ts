@@ -1,20 +1,24 @@
 import { rekeyMiddleware } from '@rekey.dev/nextjs/middleware';
 
 /**
- * Next 16 renamed this file convention from `middleware` to `proxy`. Same
- * runtime, same export shape; on Next 15 rename it back to `middleware.ts`.
+ * A cheap first gate: it checks that a session cookie is *present* and sends
+ * everyone else to sign-in. It deliberately does not call Rekey, so it costs
+ * nothing per request and it cannot tell you whether the token is still valid.
  *
- * Refreshes the session cookie when the access token is close to expiring, so a
- * signed-in person is not bounced to sign-in mid-session.
+ * That check is the page's job, and the pages still do it, which is why
+ * app/dashboard/page.tsx calls `auth()` itself rather than assuming this ran.
+ * This is the doormat, not the lock.
  *
- * It does not protect routes. Route protection is a decision per page, and
- * doing it here would mean the list of protected paths lives somewhere other
- * than the pages themselves. See app/dashboard/page.tsx for how a page guards
- * itself.
+ * Everything not listed as public needs a cookie to reach, so a new page is
+ * protected by default rather than by remembering to add it here.
+ *
+ * Next 16 renamed this file convention from `middleware` to `proxy`. On Next 15
+ * rename it back; same export, older name.
  */
-export default rekeyMiddleware();
+export default rekeyMiddleware({
+  publicRoutes: ['/', '/pricing', '/sign-in', '/sign-up'],
+});
 
 export const config = {
-  // Everything except static assets. Adjust freely.
   matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)'],
 };

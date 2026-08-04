@@ -14,8 +14,8 @@ export default async function AccountPage() {
   if (!session) redirect('/sign-in');
 
   const [subscription, entitlements] = await Promise.all([
-    rekey.billing.getSubscription(session.accessToken, { includeEnded: true }).catch(() => null),
-    rekey.billing.getEntitlements(session.accessToken).catch(() => null),
+    rekey().billing.getSubscription(session.accessToken, { includeEnded: true }).catch(() => null),
+    rekey().billing.getEntitlements(session.accessToken).catch(() => null),
   ]);
 
   const endingEarly = subscription ? cancelsAtPeriodEnd(subscription) : false;
@@ -72,7 +72,7 @@ export default async function AccountPage() {
         <h2 className="text-sm font-medium uppercase tracking-wider text-neutral-500">Credits</h2>
         <p className="mt-3 text-lg tabular-nums">{entitlements?.creditBalance ?? 0}</p>
         <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
-          Spent with <code className="font-mono text-xs">rekey.credits.consume()</code> from your
+          Spent with <code className="font-mono text-xs">rekey().credits.consume()</code> from your
           server. See app/actions/credits.ts.
         </p>
       </section>

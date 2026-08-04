@@ -15,7 +15,7 @@ export async function cancelSubscriptionAction() {
   const session = await auth();
   if (!session) return;
 
-  await rekey.billing.cancelSubscription(session.accessToken);
+  await rekey().billing.cancelSubscription(session.accessToken);
   revalidatePath('/account');
   revalidatePath('/dashboard');
 }

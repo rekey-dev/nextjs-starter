@@ -15,7 +15,7 @@ export default async function PricingPage({
   const { checkout } = await searchParams;
 
   const [plans, session] = await Promise.all([
-    rekey.billing
+    rekey().billing
       .getPlans({ limit: 20 })
       .then((r) => r.items.filter((p) => p.active))
       .catch(() => []),
@@ -26,7 +26,7 @@ export default async function PricingPage({
   // instead of offering to sell it to them again. The subscription carries a
   // planId, so match it against the plans we already fetched.
   const sub = session
-    ? await rekey.billing.getSubscription(session.accessToken).catch(() => null)
+    ? await rekey().billing.getSubscription(session.accessToken).catch(() => null)
     : null;
   const currentPlanSlug =
     sub && sub.status === 'ACTIVE'

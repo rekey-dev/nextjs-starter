@@ -49,7 +49,7 @@ empty until you create a plan, which is the next section.
 | --- | --- |
 | `lib/rekey.ts` | The server client. Holds the secret key. |
 | `app/layout.tsx` | Reads the session on the server, hands the token to `<RekeyProvider>`. |
-| `proxy.ts` | Refreshes the session cookie. Deliberately does not protect routes. |
+| `proxy.ts` | A cookie-presence gate at the edge, with the public routes listed. |
 | `app/actions/auth.ts` | Sign up, sign in, sign out. |
 | `app/actions/billing.ts` | Plan click to hosted checkout URL, then redirect. |
 | `app/actions/billing-manage.ts` | Cancel at period end. |
@@ -97,8 +97,15 @@ if (!session) redirect('/sign-in');
 ```
 
 Three lines at the top of the page, and the answer to "does this route need a
-session" lives in the route. The proxy is only there to keep the token fresh.
-Move the check into `proxy.ts` if you prefer a central list; nothing stops you.
+session" lives in the route.
+
+`proxy.ts` also runs, and it is worth being clear about what it does and does
+not do. It checks that a session cookie is **present** and redirects everyone
+else to sign-in. It deliberately never calls Rekey, so it costs nothing per
+request, and for the same reason it cannot know whether the token is still
+valid. It is the doormat; `auth()` in the page is the lock. Keep both: the proxy
+means a page you forget to guard is protected by default, and the page check
+means an expired or revoked token is caught rather than waved through.
 
 ### MFA
 
@@ -123,7 +130,7 @@ Providers, or checkout will have nothing to redirect to.
 plan in the panel and the page follows.
 
 ```tsx
-const plans = await rekey.billing.getPlans({ limit: 20 })
+const plans = await rekey().billing.getPlans({ limit: 20 })
   .then((r) => r.items.filter((p) => p.active));
 
 <PricingTable plans={plans} checkoutAction={checkoutAction} currentPlanSlug={currentPlanSlug} />
@@ -132,7 +139,7 @@ const plans = await rekey.billing.getPlans({ limit: 20 })
 The table posts `planSlug` to your action, which creates the checkout session:
 
 ```ts
-const { url } = await rekey.billing.createCheckout(session.accessToken, {
+const { url } = await rekey().billing.createCheckout(session.accessToken, {
   planSlug,
   successUrl: `${appUrl}/dashboard?checkout=done`,
   cancelUrl: `${appUrl}/pricing?checkout=canceled`,
@@ -146,7 +153,7 @@ Rekey handles that webhook; you do not need an endpoint for it.
 ### Checking what someone is allowed to do
 
 ```ts
-const { features, creditBalance } = await rekey.billing.getEntitlements(session.accessToken);
+const { features, creditBalance } = await rekey().billing.getEntitlements(session.accessToken);
 if (!features.export_csv) return notAllowed();
 ```
 
@@ -163,12 +170,12 @@ Check, do the work, then deduct, in that order, so a failure costs the user
 nothing:
 
 ```ts
-const { creditBalance } = await rekey.billing.getEntitlements(session.accessToken);
+const { creditBalance } = await rekey().billing.getEntitlements(session.accessToken);
 if (creditBalance < 1) return { ok: false, reason: 'no-credits' };
 
 // ... the work ...
 
-await rekey.credits.consume({ endUserId: session.user.id, amount: 1, idempotencyKey });
+await rekey().credits.consume({ endUserId: session.user.id, amount: 1, idempotencyKey });
 ```
 
 Pass something stable as `idempotencyKey` (a job id, a request id) and a retry
