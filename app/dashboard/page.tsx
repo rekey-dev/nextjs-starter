@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth } from '@rekey.dev/nextjs/server';
-import { cancelsAtPeriodEnd } from '@rekey.dev/node';
+import { getSession } from '@/lib/session';
 import { rekey } from '@/lib/rekey';
 
 /**
@@ -12,7 +11,7 @@ import { rekey } from '@/lib/rekey';
  * one file and know. Middleware still runs, but only to keep the session fresh.
  */
 export default async function DashboardPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session) redirect('/sign-in');
 
   // Entitlements are resolved server-side. Never gate anything that matters on
@@ -22,7 +21,10 @@ export default async function DashboardPage() {
     rekey().billing.getEntitlements(session.accessToken).catch(() => null),
   ]);
 
-  const endingEarly = subscription ? cancelsAtPeriodEnd(subscription) : false;
+  // `cancelAt` is the field that says "already scheduled to end". The
+  // cancelsAtPeriodEnd() helper answers a different question: what a cancel
+  // right now would do to this subscriber.
+  const alreadyEnding = Boolean(subscription?.cancelAt);
 
   return (
     <div className="space-y-8 py-2">
@@ -41,7 +43,7 @@ export default async function DashboardPage() {
             <p className="text-lg">{subscription.status}</p>
             {subscription.currentPeriodEnd ? (
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                {endingEarly ? 'Access until' : 'Renews on'}{' '}
+                {alreadyEnding ? 'Access until' : 'Renews on'}{' '}
                 {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
               </p>
             ) : null}

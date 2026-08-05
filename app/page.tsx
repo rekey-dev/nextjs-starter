@@ -28,7 +28,11 @@ const map = [
   },
   {
     file: 'proxy.ts',
-    what: 'Keeps the session fresh. Deliberately does not protect routes.',
+    what: 'Repairs a stale session, then gates anything not listed as public.',
+  },
+  {
+    file: 'lib/session.ts',
+    what: 'getSession(). Use it in pages: auth() cannot write cookies mid-render.',
   },
 ];
 

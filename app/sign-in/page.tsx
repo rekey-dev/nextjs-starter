@@ -1,5 +1,6 @@
 import { SignIn } from '@rekey.dev/react';
 import { signInAction } from '@/app/actions/auth';
+import { safePath } from '@/lib/safe-path';
 
 /**
  * `<SignIn>` renders the form, the OAuth buttons and the error states. You
@@ -11,20 +12,24 @@ import { signInAction } from '@/app/actions/auth';
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mfa?: string; next?: string }>;
+  searchParams: Promise<{ mfa?: string; error?: string; next?: string }>;
 }) {
-  const { mfa, next } = await searchParams;
+  const { mfa, error, next } = await searchParams;
 
-  // Only ever a path on this site. An absolute URL here would turn the sign-in
-  // page into an open redirect.
-  const dest = next?.startsWith('/') && !next.startsWith('//') ? next : '/dashboard';
+  // Only ever a path on this site. See lib/safe-path.ts for why the obvious
+  // check is not enough.
+  const dest = safePath(next, '/dashboard');
 
   return (
     <div className="mx-auto max-w-sm py-10">
       <SignIn
         action={signInAction.bind(null, dest)}
         signUpUrl="/sign-up"
-        error={mfa ? 'This account uses two-factor authentication. Enter your code to continue.' : undefined}
+        error={
+          mfa
+            ? 'This account has two-factor authentication turned on, and this starter does not implement the second step. See the MFA section of the README to add it.'
+            : error
+        }
       />
     </div>
   );

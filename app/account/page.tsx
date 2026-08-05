@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { auth } from '@rekey.dev/nextjs/server';
+import { getSession } from '@/lib/session';
 import { cancelsAtPeriodEnd } from '@rekey.dev/node';
 import { rekey } from '@/lib/rekey';
 import { cancelSubscriptionAction } from '@/app/actions/billing-manage';
@@ -10,7 +10,7 @@ import { cancelSubscriptionAction } from '@/app/actions/billing-manage';
  * not end up answering "how do I cancel" by hand.
  */
 export default async function AccountPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session) redirect('/sign-in');
 
   const [subscription, entitlements] = await Promise.all([
@@ -18,7 +18,13 @@ export default async function AccountPage() {
     rekey().billing.getEntitlements(session.accessToken).catch(() => null),
   ]);
 
-  const endingEarly = subscription ? cancelsAtPeriodEnd(subscription) : false;
+  // Two different questions, and conflating them is how the cancel button ends
+  // up hidden from every healthy subscriber.
+  //   cancelAt            -> is this ALREADY scheduled to end?
+  //   cancelsAtPeriodEnd  -> if I cancel NOW, do they keep the rest of the
+  //                          period, or does access stop on click with no refund?
+  const alreadyEnding = Boolean(subscription?.cancelAt);
+  const gracefulCancel = subscription ? cancelsAtPeriodEnd(subscription) : false;
   const live = subscription?.status === 'ACTIVE' || subscription?.status === 'PAST_DUE';
 
   return (
@@ -36,12 +42,12 @@ export default async function AccountPage() {
             <p className="mt-3 text-lg">{subscription.status}</p>
             {subscription.currentPeriodEnd ? (
               <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                {endingEarly ? 'Access until' : 'Renews on'}{' '}
+                {alreadyEnding ? 'Access until' : 'Renews on'}{' '}
                 {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
               </p>
             ) : null}
 
-            {endingEarly ? (
+            {alreadyEnding ? (
               <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-400">
                 Already set to end. Nothing more to do.
               </p>
@@ -51,8 +57,13 @@ export default async function AccountPage() {
                   type="submit"
                   className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                 >
-                  Cancel at period end
+                  {gracefulCancel ? 'Cancel at period end' : 'Cancel now'}
                 </button>
+                <p className="mt-2 text-xs text-neutral-500">
+                  {gracefulCancel
+                    ? 'You keep access until the date above.'
+                    : 'This subscription is not ACTIVE, so cancelling ends access immediately and there is no refund for the remainder.'}
+                </p>
               </form>
             )}
           </>

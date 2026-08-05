@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { RekeyProvider } from '@rekey.dev/react';
-import { auth } from '@rekey.dev/nextjs/server';
+import { getSession } from '@/lib/session';
 import { SiteHeader } from '@/app/site-header';
 import './globals.css';
 
@@ -13,7 +13,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Read the session on the server and hand the token down. The provider needs
   // it so client components know who is signed in without a second round trip
   // on first paint.
-  const session = await auth();
+  const session = await getSession();
 
   return (
     <html lang="en">
@@ -22,6 +22,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           publishableKey={process.env.NEXT_PUBLIC_REKEY_PUBLIC_KEY!}
           apiUrl={process.env.NEXT_PUBLIC_REKEY_URL ?? 'https://api.rekey.dev'}
           accessToken={session?.accessToken}
+          // Without this the provider starts in its loading state, where both
+          // <SignedIn> and <SignedOut> render nothing, so a signed-in visitor
+          // gets an empty header until a browser round-trip finishes. The
+          // server already has the user; hand it over.
+          initialUser={session?.user ?? null}
         >
           <SiteHeader />
           <main className="mx-auto w-full max-w-5xl px-6 py-10">{children}</main>

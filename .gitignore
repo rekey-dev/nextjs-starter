@@ -44,3 +44,7 @@ next-env.d.ts
 !.env.example
 
 *.tsbuildinfo
+
+# written by `next build` on first run
+AGENTS.md
+CLAUDE.md
