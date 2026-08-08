@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
-import { cancelsAtPeriodEnd } from '@rekey.dev/node';
+import { cancelEffect, isCancelScheduled } from '@rekey.dev/node';
 import { rekey } from '@/lib/rekey';
 import { cancelSubscriptionAction } from '@/app/actions/billing-manage';
 
@@ -20,11 +20,11 @@ export default async function AccountPage() {
 
   // Two different questions, and conflating them is how the cancel button ends
   // up hidden from every healthy subscriber.
-  //   cancelAt            -> is this ALREADY scheduled to end?
-  //   cancelsAtPeriodEnd  -> if I cancel NOW, do they keep the rest of the
-  //                          period, or does access stop on click with no refund?
-  const alreadyEnding = Boolean(subscription?.cancelAt);
-  const gracefulCancel = subscription ? cancelsAtPeriodEnd(subscription) : false;
+  //   isCancelScheduled -> is this ALREADY scheduled to end?
+  //   cancelEffect      -> if I cancel NOW, do they keep the rest of the
+  //                        period, or does access stop on click with no refund?
+  const alreadyEnding = subscription ? isCancelScheduled(subscription) : false;
+  const gracefulCancel = subscription ? cancelEffect(subscription) === 'period-end' : false;
   const live = subscription?.status === 'ACTIVE' || subscription?.status === 'PAST_DUE';
 
   return (

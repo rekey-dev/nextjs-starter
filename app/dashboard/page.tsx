@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/session';
+import { isCancelScheduled } from '@rekey.dev/node';
 import { rekey } from '@/lib/rekey';
 
 /**
@@ -21,10 +22,11 @@ export default async function DashboardPage() {
     rekey().billing.getEntitlements(session.accessToken).catch(() => null),
   ]);
 
-  // `cancelAt` is the field that says "already scheduled to end". The
-  // cancelsAtPeriodEnd() helper answers a different question: what a cancel
-  // right now would do to this subscriber.
-  const alreadyEnding = Boolean(subscription?.cancelAt);
+  // isCancelScheduled() answers "already scheduled to end". cancelEffect()
+  // answers a different question: what a cancel right now would do to this
+  // subscriber. Conflating them hides the cancel button from every healthy
+  // subscriber.
+  const alreadyEnding = subscription ? isCancelScheduled(subscription) : false;
 
   return (
     <div className="space-y-8 py-2">
